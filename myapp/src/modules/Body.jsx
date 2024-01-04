@@ -20,7 +20,7 @@ const Body = () => {
       formData.append("image", file);
       const response = await axios({
         method: "post",
-        url: "https://api.imgbb.com/1/upload?key=1354c230dd40a7043dbe4307c3df1bc3",
+        url: "https://api.imgbb.com/1/upload?key=a1ad1ec2f3609f79f5c2c4f6ed0b6602",
         data: formData,
         headers: {
           "content-Type": "multipart/form-data",

@@ -8,6 +8,7 @@ from sentence_transformers import SentenceTransformer
 from PIL import Image
 import requests
 from io import BytesIO
+from torch.nn.functional import softmax
 from flask_cors import CORS
 
 model = resnet18(pretrained=True)
@@ -76,7 +77,7 @@ model = Multimodal(Vision_model,Language_model,num_classes=16)
 model.load_state_dict(torch.load('C:/Users/ADMIN/Downloads/PBL6/model_checkpoint/checkpoint/version_1/checkpoint.pth'))
 model.eval()
 
-class_labels = {0: 'Cell Phone', 1: 'Chair', 2: 'Digital + Camera', 3: 'Fridge', 4: 'Headphone', 
+class_labels = {0: 'Cell Phone', 1: 'Chair', 2: 'Digital Camera', 3: 'Fridge', 4: 'Headphone', 
                 5: 'Iron', 6: 'Keyboard', 7: 'Lamp', 8: 'Laptop', 9: 'Mouse', 
                 10: 'Printer', 11: 'Speaker', 12: 'Table', 13: 'Tablet', 
                 14: 'Television', 15: 'Vaccuum'}
@@ -88,26 +89,40 @@ def home():
 @app.route('/predict', methods=['POST'])
 def predict():
     if request.method == 'POST':
-        text_input = request.form['text_input']
-        image_file = request.form['image_input']
+        results = [] 
+        for i in range(1, 6): 
+            text_input_name = f'text_input{i}'
+            image_input_name = f'image_input{i}'
 
-        text_encoded = tokenizer.encode(text_input, convert_to_tensor=True).unsqueeze(0)
+            text_input = request.form.get(text_input_name)
+            image_file = request.form.get(image_input_name)
 
-        response = requests.get(image_file)
-        image = Image.open(BytesIO(response.content)).convert('RGB')
-        image_transform = transforms.Compose([
-            transforms.Resize((224, 224)),
-            transforms.ToTensor(),
-        ])
-        image_tensor = image_transform(image).unsqueeze(0)  
+            if not text_input or not image_file:
+                break
 
-        with torch.no_grad():
-            prediction = model(image_tensor, text_encoded)
+            text_encoded = tokenizer.encode(text_input, convert_to_tensor=True).unsqueeze(0)
+            response = requests.get(image_file)
+            image = Image.open(BytesIO(response.content)).convert('RGB')
+            image_transform = transforms.Compose([
+                transforms.Resize((224, 224)),
+                transforms.ToTensor(),
+            ])
+            image_tensor = image_transform(image).unsqueeze(0)  
 
-        prediction = prediction.argmax().item()
-        predicted_label = class_labels.get(prediction, 'Unknown Class')
-        
-        return predicted_label
-    
+            with torch.no_grad():
+                prediction_logits = model(image_tensor, text_encoded)
+                prediction_probabilities = softmax(prediction_logits, dim=1)
+                predicted_class = prediction_probabilities.argmax(dim=1).item()
+                confidence = prediction_probabilities[0][predicted_class].item()
+
+            predicted_label = class_labels.get(predicted_class, 'Unknown Class')
+            confidence_percentage = f'{confidence * 100:.2f}'
+
+            results.append((predicted_label, confidence_percentage,image_file)) 
+
+            i += 1
+
+        return results
+
 if __name__ == '__main__':
     app.run(debug=True, host='localhost', port=8080)

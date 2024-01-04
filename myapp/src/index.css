@@ -56,7 +56,7 @@ body {
   font-size: 16px;
   background-color: #1C1C24;
   height: 150vh;
-  overflow: hidden;
+  /* overflow: hidden; */
 }
 .hidden-input {
   border: 0;
@@ -813,4 +813,23 @@ strong {
     transform: scale(0.5);
     opacity: 0.5;
   }
+}
+.progressbar{
+	position: relative;
+	overflow: hidden;
+	width: 350px;
+	height: 35px;
+	border-radius: 5px;
+	background-color: #eee;
+}
+
+.progressPercent{
+	font-weight: 600;
+	font-family:'Franklin Gothic Medium';
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%,-50%);
+	color: #eee;
+	text-shadow: -1px 0 #555, 0 1px #555, 1px 0 #555, 0 -1px #555;
 }

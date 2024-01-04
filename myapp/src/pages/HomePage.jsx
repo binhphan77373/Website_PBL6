@@ -1,6 +1,7 @@
 import  { useEffect } from 'react';
 import Topbar from '../modules/Topbar';
 import Body from '../modules/Body';
+import Body1 from '../modules/Body1';
 import "../index.css";
 const HomePage = () => {
   useEffect(() => {
@@ -9,7 +10,7 @@ const HomePage = () => {
   return (
     <>
       <Topbar></Topbar> 
-      <Body></Body>
+      <Body1></Body1>
     </>
   );
 };
